@@ -1,0 +1,75 @@
+from matplotlib import pyplot as plt
+import pandas as pd
+import seaborn as sns
+%matplotlib inline
+
+df_species = pd.read_csv('species_info.csv')
+df_observations = pd.read_csv('observations.csv')
+
+print (df_species.head())
+# print (df_observations)
+
+df_species.shape
+
+
+df_observations.shape
+
+# Uniques names in the df_species
+
+print(df_species.category.unique())
+print(df_species.conservation_status.unique())
+
+print (df_observations.head())
+
+print(df_observations.park_name.unique())
+
+print (df_species.groupby("category").size())
+
+print(df_species.groupby("conservation_status").size())
+
+print(f"number of observations:{df_observations.observations.sum()}")
+
+df_species.fillna('No Intervention', inplace=True)
+df_species.groupby("conservation_status").size()
+
+conservationCategory = df_species[df_species.conservation_status != "No Intervention"]\
+    .groupby(["conservation_status", "category"])['scientific_name']\
+    .count()\
+    .unstack()
+
+conservationCategory
+
+ax = conservationCategory.plot(kind = 'bar', 
+                               figsize=(8,6), 
+                               stacked=False)
+ax.set_xlabel("Conservation Status")
+ax.set_ylabel("Number of Species");
+
+df_species['is_protected'] = df_species.conservation_status != 'No Intervention'
+
+category_counts = df_species.groupby(['category', 'is_protected'])\
+                        .scientific_name.nunique()\
+                        .reset_index()\
+                        .pivot(columns='is_protected',
+                                      index='category',
+                                      values='scientific_name')\
+                        .reset_index()
+category_counts.columns = ['category', 'not_protected', 'protected']
+
+category_counts
+
+category_counts['percent_protected'] = category_counts.protected / \
+                                      (category_counts.protected + category_counts.not_protected) * 100
+
+category_counts
+
+from scipy.stats import chi2_contingency
+
+contingency1 = [[30, 146],
+              [75, 413]]
+chi2_contingency(contingency1)
+
+contingency2 = [[30, 146],
+               [5, 73]]
+chi2_contingency(contingency2)
+
